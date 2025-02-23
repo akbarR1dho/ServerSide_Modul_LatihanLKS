@@ -16,11 +16,12 @@ Route::prefix("/v1")->group(function () {
     Route::prefix("/auth")->group(function () {
         Route::post('/login', [UsersController::class, 'login']);
         Route::post('/logout', [UsersController::class, 'logout'])->middleware('auth:sanctum');
+        Route::post('/register', [UsersController::class, 'register']);
     });
 
     // Form
     Route::prefix("/forms")->group(function () {
-        Route::post('/', [FormsController::class, 'post'])->middleware('auth:sanctum');
+        Route::post('/', [FormsController::class, 'post'])->middleware('jwt.middleware');
         Route::get('/', [FormsController::class, 'getAll'])->middleware('auth:sanctum');
         Route::get('/{slug}', [FormsController::class, 'getDetail'])->middleware('auth:sanctum');
 

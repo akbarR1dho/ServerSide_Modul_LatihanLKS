@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\PersonalAccessToken;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UsersController extends Controller
 {
@@ -25,29 +27,26 @@ class UsersController extends Controller
             ], 422);
         }
 
-        $user = User::where('email', $req->email)->first();
+        try {
+            if (!$token = JWTAuth::attempt($req->only('email', 'password'))) {
+                return response()->json([
+                    'message' => 'Email or password incorrect'
+                ], 401);
+            }
 
-        if ($user && $user->password == $req->password) {
-            // Login user
-            Auth::login($user);
+            $user = auth()->user();
 
-            // Hapus token sebelumnya
-            $user->tokens()->delete();
-
-            // Kirim response dengan token
             return response()->json([
                 'message' => 'Login success',
-                'user' => [
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'accessToken' => $user->createToken('auth-token')->plainTextToken
-                ],
+                'user' => $user,
+                'accessToken' => $token
             ], 200);
+        } catch (JWTException $e) {
+            return response()->json([
+                'message' => 'Login failed',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'message' => 'Email or password incorrect'
-        ], 401);
     }
 
     // Logout function
@@ -63,6 +62,34 @@ class UsersController extends Controller
 
         return response()->json([
             'message' => 'Logout success',
+        ], 200);
+    }
+
+    // Register function
+    public function register(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:5'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Invalid field',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = User::create([
+            'name' => $req->name,
+            'email' => $req->email,
+            'password' => bcrypt($req->password)
+        ]);
+
+        return response()->json([
+            'message' => 'Register success',
+            'user' => $user
         ], 200);
     }
 }

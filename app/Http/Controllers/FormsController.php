@@ -30,13 +30,15 @@ class FormsController extends Controller
             ], 422);
         }
 
+        $user = auth()->user();
+
         $form = new FormsModel();
 
         $form->name = $req->name;
         $form->slug = $req->slug;
         $form->description = $req->description;
         $form->limit_one_response = $req->limit_one_response;
-        $form->creator_id = auth()->user()->id;
+        $form->creator_id = $user->id;
 
         $form->save();
 
