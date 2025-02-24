@@ -15,22 +15,22 @@ Route::prefix("/v1")->group(function () {
     // Auth
     Route::prefix("/auth")->group(function () {
         Route::post('/login', [UsersController::class, 'login']);
-        Route::post('/logout', [UsersController::class, 'logout'])->middleware('auth:sanctum');
+        Route::post('/logout', [UsersController::class, 'logout'])->middleware('jwt.middleware');
         Route::post('/register', [UsersController::class, 'register']);
     });
 
     // Form
     Route::prefix("/forms")->group(function () {
         Route::post('/', [FormsController::class, 'post'])->middleware('jwt.middleware');
-        Route::get('/', [FormsController::class, 'getAll'])->middleware('auth:sanctum');
-        Route::get('/{slug}', [FormsController::class, 'getDetail'])->middleware('auth:sanctum');
+        Route::get('/', [FormsController::class, 'getAll'])->middleware('jwt.middleware');
+        Route::get('/{slug}', [FormsController::class, 'getDetail'])->middleware('jwt.middleware');
 
         // Question
-        Route::post('/{slug}', [QuestionsController::class, 'post'])->middleware('auth:sanctum');
-        Route::delete('/{slug}/questions/{id}', [QuestionsController::class, 'delete'])->middleware('auth:sanctum');
+        Route::post('/{slug}', [QuestionsController::class, 'post'])->middleware('jwt.middleware');
+        Route::delete('/{slug}/questions/{id}', [QuestionsController::class, 'delete'])->middleware('jwt.middleware');
 
         // Response
-        Route::post('/{slug}/responses', [ResponsesController::class, 'post'])->middleware('auth:sanctum');
-        Route::get('/{slug}/responses', [ResponsesController::class, 'getAll'])->middleware('auth:sanctum');
+        Route::post('/{slug}/responses', [ResponsesController::class, 'post'])->middleware('jwt.middleware');
+        Route::get('/{slug}/responses', [ResponsesController::class, 'getAll'])->middleware('jwt.middleware');
     });
 });

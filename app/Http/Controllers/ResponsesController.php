@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AnswersModel;
 use App\Models\FormsModel;
 use App\Models\ResponsesModel;
 use Illuminate\Http\Request;
@@ -13,13 +12,6 @@ class ResponsesController extends Controller
     //
     public function post(Request $req, $slug)
     {
-
-        if (!auth()->check()) {
-            return response()->json([
-                'message' => 'Unauthenticated',
-            ], 401);
-        }
-
         $validator = Validator::make($req->all(), [
             'answers' => 'required_if:sets,1|array|min:1',
         ]);
@@ -68,12 +60,6 @@ class ResponsesController extends Controller
 
     public function getAll($slug)
     {
-        if (!auth()->check()) {
-            return response()->json([
-                'message' => 'Unauthenticated',
-            ], 401);
-        }
-
         $form = FormsModel::with([
             'responses.user',
             'responses.answers.question'

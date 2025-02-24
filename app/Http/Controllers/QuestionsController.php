@@ -12,12 +12,6 @@ class QuestionsController extends Controller
     //
     public function post(Request $req, $slug)
     {
-        if (!auth()->check()) {
-            return response()->json([
-                'message' => 'Unauthenticated',
-            ], 401);
-        }
-
         $form = FormsModel::where('slug', $slug)->first();
 
         if ($form->creator_id != auth()->user()->id) {
@@ -36,6 +30,7 @@ class QuestionsController extends Controller
             'name' => 'required',
             'choice_type' => 'required|in:short answer,paragraph,date,time,multiple choice,dropdown,checkboxes',
             'choices' => 'required_if:choice_type,multiple choice,dropdown,checkboxes|array|min:1',
+            'is_required' => 'required|boolean'
         ]);
 
         if ($validator->fails()) {
@@ -63,12 +58,6 @@ class QuestionsController extends Controller
 
     public function delete($slug, $id)
     {
-        if (!auth()->check()) {
-            return response()->json([
-                'message' => 'Unauthenticated',
-            ], 401);
-        }
-
         $form = FormsModel::where('slug', $slug)->first();
 
         if (!$form) {

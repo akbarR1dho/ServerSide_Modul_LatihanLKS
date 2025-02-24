@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Laravel\Sanctum\PersonalAccessToken;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -50,19 +48,23 @@ class UsersController extends Controller
     }
 
     // Logout function
-    public function logout()
+    public function logout(Request $req)
     {
-        if (!auth()->check()) {
+        try {
+            // Invalidate token
+            JWTAuth::invalidate(JWTAuth::getToken());
+
             return response()->json([
-                'message' => 'Unauthenticated',
-            ], 401);
+                'status' => 'success',
+                'message' => 'Logout success',
+            ]);
+        } catch (JWTException $e) {
+            // Jika terjadi error saat invalidate token
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to logout, please try again.',
+            ], 500);
         }
-
-        auth()->user()->tokens()->delete();
-
-        return response()->json([
-            'message' => 'Logout success',
-        ], 200);
     }
 
     // Register function

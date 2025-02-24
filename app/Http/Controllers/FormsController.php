@@ -11,12 +11,6 @@ class FormsController extends Controller
     //
     public function post(Request $req)
     {
-        if (!auth()->check()) {
-            return response()->json([
-                'message' => 'Unauthenticated',
-            ], 401);
-        }
-
         $validator = Validator::make($req->all(), [
             'name' => 'required',
             'slug' => 'required|unique:forms,slug|regex:/^[a-zA-Z0-9.-]+$/',
@@ -57,35 +51,31 @@ class FormsController extends Controller
 
     public function getAll()
     {
-        if (!auth()->check()) {
-            return response()->json([
-                'message' => 'Unauthenticated',
-            ], 401);
-        }
+        $forms = FormsModel::where('creator_id', auth()->user()->id)->get();
 
         return response()->json([
             'message' => 'Get all forms success',
-            'forms' => FormsModel::where('creator_id', auth()->user()->id)->get()
+            'total' => $forms->count(),
+            'forms' => $forms,
         ], 200);
     }
 
     public function getDetail($slug)
     {
-        if (!auth()->check()) {
-            return response()->json([
-                'message' => 'Unauthenticated',
-            ], 401);
-        }
-
         $data = FormsModel::where('slug', $slug)->first();
 
-        $domain_allowed = $data->allowed_domains()->where('form_id', $data->id)->first();
+        // Ambil daftar domain yang diizinkan untuk form tersebut
+        $allowedDomains = $data->allowed_domains()->where('form_id', $data->id)->pluck('domain');
 
-        if (explode('@', auth()->user()->email)[1] != $domain_allowed->domain) {
+        // Ambil domain dari email user yang login
+        $userDomain = explode('@', auth()->user()->email)[1];
+
+        // Cek apakah domain user ada dalam daftar domain yang diizinkan
+        if (!$allowedDomains->contains($userDomain)) {
             return response()->json([
                 'message' => 'Forbidden access',
             ], 403);
-        };
+        }
 
         if (!$data) {
             return response()->json([
